@@ -14,7 +14,7 @@ dependencies {
     implementation 'dev.langchain4j:langchain4j-open-ai:1.0.0-beta1'
     implementation 'dev.langchain4j:langchain4j:1.0.0-beta1'
 
-    api 'org.commonmark:commonmark:0.17.2'
+    api 'org.commonmark:commonmark:0.17.2' 
 
     compileOnly 'org.projectlombok:lombok:1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
