@@ -1,0 +1,22 @@
+services:
+  jira-ai-flow:
+    image: amazoncorretto:17
+    container_name:  fine-formula-assistant
+    working_dir: /app
+    volumes:
+      - fine-formula-assistant-1.0.0-SNAPSHOT.jar:/app/fine-formula-assistant-1.0.0-SNAPSHOT.jar
+      - ./logs:/app/logs
+    ports:
+      - "18088:18080"
+    environment:
+      - TZ=Asia/Shanghai
+    command: [ "java", "-jar", "fine-formula-assistant-1.0.0-SNAPSHOT.jar" ]
+    #    depends_on:
+    #      db:
+    #        condition: service_healthy
+    networks:
+      - fine-formula-assistant-network
+
+networks:
+  fine-formula-assistant-network:
+    driver: bridge

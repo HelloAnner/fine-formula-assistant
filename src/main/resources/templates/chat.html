@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>报表公式辅助助手</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/github-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/highlight.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --chat-bg: #343541;
+            --user-msg-bg: #444654;
+            --assistant-msg-bg: #343541;
+            --text-color: #ECECF1;
+            --code-bg: #1e1e1e;
+        }
+
+        body {
+            background-color: var(--chat-bg);
+            color: var(--text-color);
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .title-bar {
+            background-color: var(--chat-bg);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .title-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .chat-frame {
+            max-width: 1000px;
+            margin: 4rem auto 7rem auto;
+            padding: 1rem;
+            height: calc(100vh - 11rem);
+            overflow-y: auto;
+        }
+
+        .message {
+            padding: 1.5rem;
+            margin: 0.5rem 0;
+            border-radius: 0.5rem;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .user-message {
+            background-color: var(--user-msg-bg);
+        }
+
+        .assistant-message {
+            background-color: var(--assistant-msg-bg);
+        }
+
+        .message-content {
+            line-height: 1.6;
+        }
+
+        /* Markdown Styles */
+        .message-content pre {
+            background-color: var(--code-bg);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .message-content code {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .message-content p {
+            margin: 0.75rem 0;
+        }
+
+        .message-content ul,
+        .message-content ol {
+            margin: 0.75rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .message-content li {
+            margin: 0.5rem 0;
+        }
+
+        .message-content blockquote {
+            border-left: 4px solid #4a5568;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #a0aec0;
+        }
+
+        .input-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to bottom, transparent, var(--chat-bg) 20%);
+            padding: 1.5rem;
+        }
+
+        .input-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            gap: 1rem;
+            background-color: var(--user-msg-bg);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+        }
+
+        textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            resize: none;
+            padding: 0.5rem;
+            min-height: 24px;
+            max-height: 200px;
+            outline: none;
+        }
+
+        .send-button {
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 0.5rem;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .send-button:hover {
+            opacity: 1;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 1rem;
+            color: #a0aec0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="title-bar">
+        <div class="title-text">报表公式辅助助手</div>
+    </div>
+
+    <div class="chat-frame" id="chatContainer"></div>
+
+    <div class="input-panel">
+        <div class="input-container">
+            <textarea id="userInput" placeholder="输入问题场景或者解释公式内容..." rows="1"
+                onkeydown="handleKeyPress(event)"></textarea>
+            <button class="send-button" onclick="sendMessage()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="currentColor" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        let sessionId = localStorage.getItem('sessionId') || generateSessionId();
+
+        // 配置marked选项
+        marked.setOptions({
+            highlight: function (code, language) {
+                if (language && hljs.getLanguage(language)) {
+                    return hljs.highlight(code, { language: language }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true,
+            gfm: true
+        });
+
+        function generateSessionId() {
+            const id = Math.random().toString(36).substring(2) + Date.now().toString(36);
+            localStorage.setItem('sessionId', id);
+            return id;
+        }
+
+        function appendMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            // 如果是用户消息，直接显示文本，如果是助手消息，解析Markdown
+            contentDiv.innerHTML = isUser ? content : marked.parse(content);
+
+            // 如果是助手消息，对代码块应用语法高亮
+            if (!isUser) {
+                contentDiv.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightBlock(block);
+                });
+            }
+
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            appendMessage(message, true);
+            userInput.value = '';
+            adjustTextareaHeight();
+
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator';
+            typingIndicator.textContent = '正在思考...';
+            chatContainer.appendChild(typingIndicator);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        sessionId: sessionId
+                    })
+                });
+
+                const data = await response.json();
+                typingIndicator.remove();
+
+                if (data.success) {
+                    appendMessage(data.message);
+                } else {
+                    appendMessage('很抱歉，处理您的请求时出现了错误。请稍后重试。');
+                }
+            } catch (error) {
+                typingIndicator.remove();
+                appendMessage('网络错误，请检查您的连接并重试。');
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+            adjustTextareaHeight();
+        }
+
+        function adjustTextareaHeight() {
+            userInput.style.height = 'auto';
+            userInput.style.height = Math.min(userInput.scrollHeight, 200) + 'px';
+        }
+
+        // 自动调整文本框高度
+        userInput.addEventListener('input', adjustTextareaHeight);
+    </script>
+</body>
+
+</html>
+if (data.success) {
+addMessage(data.message, false);
+} else {
+addMessage('抱歉，发生了错误。请重试。', false);
+}
+} catch (error) {
+hideTypingIndicator();
+addMessage('抱歉，发生了错误。请重试。', false);
+}
+});
+</script>
+</body>
+
+</html>

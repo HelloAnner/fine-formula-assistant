@@ -1,0 +1,10 @@
+server:
+  port: 18080
+
+spring:
+  thymeleaf:
+    cache: false
+  
+logging:
+  level:
+    com.anner.llm: DEBUG 
