@@ -1,4 +1,4 @@
-package com.anner.llm.fetch;
+package com.anner.llm.embed.fetch;
 
 public class WebBrowserFetcher {
 

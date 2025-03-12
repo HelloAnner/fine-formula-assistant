@@ -27,3 +27,5 @@ gradle-app.setting
 **/.DS_STORE
 
 bin/
+
+*.jar
