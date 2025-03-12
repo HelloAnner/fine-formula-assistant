@@ -29,3 +29,12 @@ gradle-app.setting
 bin/
 
 *.jar
+
+logs/
+
+*.json
+
+*.txt
+
+*.csv
+

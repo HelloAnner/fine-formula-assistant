@@ -11,4 +11,12 @@ public class ModelManager {
                 .apiKey(System.getenv("DOUBAO_API_KEY"))
                 .build();
     }
+
+    public static ChatLanguageModel kimi() {
+        return OpenAiChatModel.builder()
+                .modelName("moonshot-v1-8k")
+                .baseUrl(System.getenv("KIMI_BASE_URL"))
+                .apiKey(System.getenv("KIMI_API_KEY"))
+                .build();
+    }
 }
