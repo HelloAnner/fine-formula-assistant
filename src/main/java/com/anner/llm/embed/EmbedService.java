@@ -4,7 +4,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +76,7 @@ public class EmbedService {
     }
 
     public void fetchAndSave() throws Exception {
-        webBrowserFetcher.setUrls(Arrays.asList("https://help.fanruan.com/finereport/doc-view-819.html"));
+        webBrowserFetcher.setUrls(AssistantConstants.DOCUMENT_URLS);
         webBrowserFetcher.setSavePath("test");
         webBrowserFetcher.setChatLanguageModel(ModelManager.kimi());
         webBrowserFetcher.fetch();
