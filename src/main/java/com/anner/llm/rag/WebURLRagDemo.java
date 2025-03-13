@@ -1,10 +1,11 @@
 package com.anner.llm.rag;
 
+import static com.anner.llm.common.Utils.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import com.anner.llm.common.Assistant;
-import static com.anner.llm.common.Utils.startConversationWith;
 import com.anner.llm.model.ModelManager;
 
 import dev.langchain4j.data.document.Document;
@@ -42,7 +43,7 @@ public class WebURLRagDemo {
     }
 
     public static void main(String[] args) {
-        ChatLanguageModel model = ModelManager.doubao();
+        ChatLanguageModel model = ModelManager.doubaoPro32K();
 
         List<String> urls = List.of(
                 "https://help.fanruan.com/finereport/doc-view-4244.html",

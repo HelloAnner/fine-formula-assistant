@@ -19,9 +19,6 @@ public class FetchClient {
     // 分析的文件名称
     private List<String> fileNames;
 
-    // 问题的分析维度
-    private List<String> analyzeFiledNames;
-
     private ChatLanguageModel chatLanguageModel;
 
     public void fetch() throws Exception {
@@ -30,7 +27,7 @@ public class FetchClient {
 
     private void fetchWebBrowser() throws Exception {
         if (urls != null && !urls.isEmpty()) {
-            WebBrowserFetcher webBrowserFetcher = new WebBrowserFetcher(savePath, analyzeFiledNames, urls,
+            WebBrowserFetcher webBrowserFetcher = new WebBrowserFetcher(savePath, urls,
                     chatLanguageModel);
             webBrowserFetcher.fetch();
         }

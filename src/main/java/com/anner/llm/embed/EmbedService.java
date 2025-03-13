@@ -4,10 +4,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.anner.llm.common.AssistantConstants;
+import com.anner.llm.embed.fetch.WebBrowserFetcher;
 import com.anner.llm.model.EmbedModelManager;
+import com.anner.llm.model.ModelManager;
 
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
@@ -27,15 +33,11 @@ import lombok.extern.slf4j.Slf4j;
  *        Created on 2025/3/12
  */
 @Slf4j
+@Service
 public class EmbedService {
 
-    private final static class Holder {
-        private static final EmbedService INSTANCE = new EmbedService();
-    }
-
-    public static EmbedService getInstance() {
-        return Holder.INSTANCE;
-    }
+    @Autowired
+    private WebBrowserFetcher webBrowserFetcher;
 
     public EmbeddingStore<TextSegment> buildEmbeddingStore() {
         // 存在则读取，不存在则创建
@@ -72,6 +74,13 @@ public class EmbedService {
         embeddingStore.serializeToFile(AssistantConstants.EMBED_JSON_FILE_NAME);
         log.info("save embeddingStore to file: {}", AssistantConstants.EMBED_JSON_FILE_NAME);
         return embeddingStore;
+    }
+
+    public void fetchAndSave() throws Exception {
+        webBrowserFetcher.setUrls(Arrays.asList("https://help.fanruan.com/finereport/doc-view-819.html"));
+        webBrowserFetcher.setSavePath("test");
+        webBrowserFetcher.setChatLanguageModel(ModelManager.kimi());
+        webBrowserFetcher.fetch();
     }
 
     private static List<Document> loadDocuments(List<String> urls) {

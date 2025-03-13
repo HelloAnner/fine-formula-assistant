@@ -6,46 +6,68 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.loader.UrlDocumentLoader;
-import dev.langchain4j.data.document.parser.TextDocumentParser;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Component;
+
+import dev.ai4j.openai4j.OpenAiHttpException;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.service.AiServices;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Component
+@Setter
+@NoArgsConstructor
 public class WebBrowserFetcher extends BaseFetchProvider {
 
-    private final List<String> urls;
+    private List<String> urls;
 
-    public WebBrowserFetcher(String savePath, List<String> analyzeFiledNames, List<String> urls,
-            ChatLanguageModel chatLanguageModel) {
-        super(savePath, analyzeFiledNames, chatLanguageModel);
+    public WebBrowserFetcher(String savePath, List<String> urls, ChatLanguageModel chatLanguageModel) {
+        super(savePath, chatLanguageModel);
         this.urls = urls;
     }
 
     @Override
     public void fetch() throws Exception {
+        log.info("Starting to fetch URLs: {}", urls);
         for (String url : urls) {
-            Document document = UrlDocumentLoader.load(url, new TextDocumentParser());
-            String content = document.text();
-            log.info("Fetched content from URL: {}, content length: {}", url, content.length());
-            // 使用大模型，按照指定的 fieldName 进行分析
-            String result = chatLanguageModel.chat(
-                    SystemMessage.from(
-                            String.format("将网页的内容，按照这些维度进行划分,帮我重新梳理内容。输出为JSON格式\n%s",
-                                    String.join(",", analyzeFiledNames))),
-                    UserMessage.from(content)).aiMessage().text();
-            log.info("Fetched result from URL: {}, result: {}", url, result);
-            // 保存到文件，名称为url
+            try {
+                fetchWithRetry(url);
+            } catch (Exception e) {
+                log.error("Failed to fetch URL after all retries: {}", url, e);
+                throw e;
+            }
+        }
+    }
+
+    @Retryable(value = {
+            Exception.class }, maxAttempts = 10, backoff = @Backoff(delay = 2000, multiplier = 2, random = true))
+    private void fetchWithRetry(String url) throws Exception {
+        try {
+            log.info("Attempting to fetch URL: {}", url);
+            String formulaStructure = AiServices.create(FormulaFetchAssistant.class,
+                    chatLanguageModel)
+                    .fetch(url);
+            log.info("Successfully fetched result from URL: {}", url);
+
+            // 保存结果
             Path filePath = Paths.get(savePath, url.replaceAll("[^a-zA-Z0-9]", "_") + ".json");
-            // 文件夹不存在，就创建
             Path parentPath = filePath.getParent();
             if (!Files.exists(parentPath)) {
                 Files.createDirectories(parentPath);
             }
-            Files.write(filePath, result.getBytes(StandardCharsets.UTF_8));
+            Files.write(filePath, formulaStructure.getBytes(StandardCharsets.UTF_8));
+            log.info("Successfully saved result to file: {}", filePath);
+
+        } catch (OpenAiHttpException e) {
+            log.warn("Rate limit reached for URL: {}, will retry. Error: {}", url, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error while fetching URL: {}, error: {}", url, e.getMessage());
+            throw e;
         }
     }
 }

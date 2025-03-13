@@ -1,8 +1,9 @@
-package com.anner.llm.service.impl;
+package com.anner.llm.service.chat;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.anner.llm.common.Assistant;
@@ -11,7 +12,6 @@ import com.anner.llm.dto.ChatResponse;
 import com.anner.llm.embed.EmbedService;
 import com.anner.llm.model.EmbedModelManager;
 import com.anner.llm.model.ModelManager;
-import com.anner.llm.service.ChatService;
 
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.memory.ChatMemory;
@@ -22,24 +22,29 @@ import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.EmbeddingStore;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class ChatServiceImpl implements ChatService {
+public class ChatServiceImpl {
 
-    private final ChatLanguageModel model;
-    private final Map<String, ChatMemory> sessionMemories;
-    private final ContentRetriever contentRetriever;
+    private ChatLanguageModel model;
+    private Map<String, ChatMemory> sessionMemories;
+    private ContentRetriever contentRetriever;
 
-    public ChatServiceImpl() {
-        this.model = ModelManager.doubao();
+    @Autowired
+    private EmbedService embedService;
+
+    @PostConstruct
+    public void init() {
+        this.model = ModelManager.doubaoPro32K();
         this.sessionMemories = new ConcurrentHashMap<>();
         this.contentRetriever = initializeContentRetriever();
     }
 
     private ContentRetriever initializeContentRetriever() {
-        EmbeddingStore<TextSegment> embeddingStore = EmbedService.getInstance().buildEmbeddingStore();
+        EmbeddingStore<TextSegment> embeddingStore = embedService.buildEmbeddingStore();
         EmbeddingModel embeddingModel = EmbedModelManager.doubao();
 
         // 创建内容检索器
@@ -59,7 +64,6 @@ public class ChatServiceImpl implements ChatService {
                 .build();
     }
 
-    @Override
     public ChatResponse chat(ChatRequest request) {
         try {
             ChatMemory memory = getOrCreateMemory(request.getSessionId());
@@ -85,6 +89,4 @@ public class ChatServiceImpl implements ChatService {
         return sessionMemories.computeIfAbsent(sessionId,
                 key -> MessageWindowChatMemory.withMaxMessages(10));
     }
-
-
 }

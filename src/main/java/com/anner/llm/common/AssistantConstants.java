@@ -10,6 +10,14 @@ import java.util.List;
 public class AssistantConstants {
     public final static String EMBED_JSON_FILE_NAME = "embeddingStore.json";
 
+    public final static int MAX_RETRIES = 10;
+
+    public final static int MAX_TOKENS = 100000;
+
+    public final static double TEMPERATURE = 0.5;
+
+    public final static double TOP_P = 0.9;
+
     public final static List<String> DOCUMENT_URLS = List.of(
             "https://help.fanruan.com/finereport/doc-view-4244.html",
             "https://help.fanruan.com/finereport/doc-view-253.html",

@@ -9,13 +9,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.anner.llm.dto.ChatRequest;
 import com.anner.llm.dto.ChatResponse;
-import com.anner.llm.service.ChatService;
+import com.anner.llm.embed.EmbedService;
+import com.anner.llm.service.chat.ChatServiceImpl;
 
 @Controller
 public class ChatController {
 
     @Autowired
-    private ChatService chatService;
+    private ChatServiceImpl chatService;
+
+    @Autowired
+    private EmbedService embedService;
 
     @GetMapping("/")
     public String index() {
@@ -26,5 +30,17 @@ public class ChatController {
     @ResponseBody
     public ChatResponse chat(@RequestBody ChatRequest request) {
         return chatService.chat(request);
+    }
+
+    @GetMapping("/api/fetch")
+    @ResponseBody
+    public String fetch() {
+        try {
+            embedService.fetchAndSave();
+            return "success";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "error";
+        }
     }
 }

@@ -1,10 +1,10 @@
 package com.anner.llm.rag;
 
+import static com.anner.llm.common.Utils.*;
+
 import java.util.List;
 
 import com.anner.llm.common.Assistant;
-import static com.anner.llm.common.Utils.startConversationWith;
-import static com.anner.llm.common.Utils.toPath;
 import com.anner.llm.model.ModelManager;
 
 import dev.langchain4j.data.document.Document;
@@ -28,7 +28,7 @@ import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
 public class NativeRagDemo {
     public static void main(String[] args) {
-        ChatLanguageModel model = ModelManager.doubao();
+        ChatLanguageModel model = ModelManager.doubaoPro32K();
 
         DocumentParser documentParser = new TextDocumentParser();
         Document document = FileSystemDocumentLoader.loadDocument(toPath("documents/1.txt"), documentParser);
