@@ -11,7 +11,7 @@ version = '1.0.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
-    maven { url 'https://maven.aliyun.com/repository/public' }
+    maven { url = uri("https://maven.aliyun.com/repository/public") }
 }
 
 dependencies {

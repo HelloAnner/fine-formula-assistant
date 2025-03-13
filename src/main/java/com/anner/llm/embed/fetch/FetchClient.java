@@ -2,6 +2,7 @@ package com.anner.llm.embed.fetch;
 
 import java.util.List;
 
+import dev.langchain4j.model.chat.ChatLanguageModel;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,13 +22,16 @@ public class FetchClient {
     // 问题的分析维度
     private List<String> analyzeFiledNames;
 
+    private ChatLanguageModel chatLanguageModel;
+
     public void fetch() throws Exception {
         fetchWebBrowser();
     }
 
     private void fetchWebBrowser() throws Exception {
         if (urls != null && !urls.isEmpty()) {
-            WebBrowserFetcher webBrowserFetcher = new WebBrowserFetcher(savePath, analyzeFiledNames, urls);
+            WebBrowserFetcher webBrowserFetcher = new WebBrowserFetcher(savePath, analyzeFiledNames, urls,
+                    chatLanguageModel);
             webBrowserFetcher.fetch();
         }
     }
