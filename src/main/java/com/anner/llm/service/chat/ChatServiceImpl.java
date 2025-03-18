@@ -1,5 +1,6 @@
 package com.anner.llm.service.chat;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,6 +23,7 @@ import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +46,17 @@ public class ChatServiceImpl {
     }
 
     private ContentRetriever initializeContentRetriever() {
-        EmbeddingStore<TextSegment> embeddingStore = embedService.buildEmbeddingStore();
+        EmbeddingStore<TextSegment> embeddingStore;
+        try {
+            embeddingStore = embedService.buildEmbeddingStore();
+        } catch (IOException e) {
+            throw new RuntimeException("build embeddingStore failed", e);
+        }
+        // EmbeddingModel embeddingModel = OllamaEmbeddingModel.builder()
+        // .baseUrl("http://localhost:11434")
+        // .modelName("nomic-embed-text")
+        // .build();
+
         EmbeddingModel embeddingModel = EmbedModelManager.doubao();
 
         // 创建内容检索器

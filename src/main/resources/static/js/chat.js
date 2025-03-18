@@ -103,17 +103,26 @@ class ChatApp {
                 })
             });
 
+            // 检查响应状态
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
             this.hideTypingIndicator();
 
-            if (data.success) {
+            // 更全面的响应处理
+            if (data.success && data.message) {
                 this.addMessage(data.message, false);
+            } else if (data.error) {
+                this.addMessage(`错误：${data.error}`, false);
             } else {
-                this.addMessage('抱歉，发生了错误。请重试。', false);
+                this.addMessage('服务器返回了意外的响应。', false);
             }
         } catch (error) {
             this.hideTypingIndicator();
-            this.addMessage('抱歉，发生了错误。请重试。', false);
+            console.error('Request error:', error);
+            this.addMessage('网络错误，请检查您的连接并重试。', false);
         }
     }
 

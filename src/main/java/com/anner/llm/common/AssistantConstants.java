@@ -1,5 +1,6 @@
 package com.anner.llm.common;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -17,6 +18,8 @@ public class AssistantConstants {
     public final static double TEMPERATURE = 0.5;
 
     public final static double TOP_P = 0.9;
+
+    public final static Duration TIMEOUT = Duration.ofSeconds(600);
 
     public final static List<String> DOCUMENT_URLS = List.of(
             "https://help.fanruan.com/finereport/doc-view-4244.html",
