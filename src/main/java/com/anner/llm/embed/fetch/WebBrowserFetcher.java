@@ -75,7 +75,7 @@ public class WebBrowserFetcher extends BaseFetchProvider {
                 return; // 成功完成，退出重试循环
 
             } catch (OpenAiHttpException e) {
-                if (e.getMessage().contains("rate_limit_reached_error")) {
+                if (e.getMessage() != null && e.getMessage().contains("rate_limit_reached_error")) {
                     log.warn("Rate limit reached for URL: {}, attempt {}/{}. Error: {}",
                             url, attempt, MAX_RETRIES, e.getMessage());
 

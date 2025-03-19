@@ -6,6 +6,20 @@ import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 
 public class ModelManager {
+
+    public static ChatLanguageModel doubaoPro256K() {
+        return OpenAiChatModel.builder()
+                .modelName("doubao-1-5-pro-256k-250115")
+                .baseUrl(System.getenv("DOUBAO_BASE_URL"))
+                .apiKey(System.getenv("DOUBAO_API_KEY"))
+                .maxRetries(AssistantConstants.MAX_RETRIES)
+                .temperature(AssistantConstants.TEMPERATURE)
+                .topP(AssistantConstants.TOP_P)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+    }
+
     public static ChatLanguageModel doubaoPro32K() {
         return OpenAiChatModel.builder()
                 .modelName("doubao-1-5-pro-32k-250115")

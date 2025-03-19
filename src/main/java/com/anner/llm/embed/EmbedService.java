@@ -126,7 +126,6 @@ public class EmbedService {
 
     private static List<TextSegment> loadJsonDocuments(String resourcePath, int maxTokensPerChunk, int overlapTokens)
             throws IOException {
-        List<TextSegment> textSegments = new ArrayList<>();
 
         InputStream inputStream = new FileInputStream(resourcePath);
 
@@ -137,7 +136,6 @@ public class EmbedService {
         ObjectMapper objectMapper = new ObjectMapper();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
-        int batchSize = 500;
         List<Document> batch = new ArrayList<>();
 
         String text = "";
@@ -172,16 +170,7 @@ public class EmbedService {
         Document document = Document.from(text, metadata);
         batch.add(document);
 
-        if (batch.size() >= batchSize) {
-            textSegments.addAll(splitIntoChunks(batch, maxTokensPerChunk, overlapTokens));
-            batch.clear();
-        }
-
-        if (!batch.isEmpty()) {
-            textSegments.addAll(splitIntoChunks(batch, maxTokensPerChunk, overlapTokens));
-        }
-
-        return textSegments;
+        return new ArrayList<>(splitIntoChunks(batch, maxTokensPerChunk, overlapTokens));
     }
 
     private static List<TextSegment> splitIntoChunks(List<Document> documents, int maxTokensPerChunk,

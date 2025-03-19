@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.anner.llm.tool.MathCalculateTool;
+import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -71,7 +73,9 @@ public class ChatServiceImpl {
     private Assistant initializeAssistant(ChatMemory memory) {
         return AiServices.builder(Assistant.class)
                 .chatLanguageModel(model)
+                .tools(new MathCalculateTool())
                 .contentRetriever(contentRetriever)
+//                .retrievalAugmentor()
                 .chatMemory(memory)
                 .build();
     }
